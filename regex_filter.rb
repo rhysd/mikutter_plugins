@@ -11,11 +11,16 @@ Plugin.create :filter do
 
     # クライアントフィルタ
     filter_update do |service,msgs|
-        exclusive_clients = UserConfig[:filter_mute_kind_clients]
+        exclusive_clients = UserConfig[:regex_filter_mute_clients]
         if exclusive_clients
-            exclusive_clients = exclusive_clients.split ","
-            msgs = msgs.delete_if do |m|
-                exclusive_clients.any?{|c| m[:source].to_s.include? c if m[:source] }
+            begin
+                exclusive_clients = exclusive_clients.map{|c| /#{c}/}
+                msgs = msgs.delete_if do |m|
+                    exclusive_clients.any? do |c|
+                        m[:source].to_s =~ c if m[:source]
+                    end
+                end
+            rescue RegexpError
             end
         end
         [service,msgs]
@@ -23,11 +28,17 @@ Plugin.create :filter do
 
     # 単語フィルタ
     filter_update do |service,msgs|
-        exclusive_words = UserConfig[:filter_exclusive_words]
+        exclusive_words = UserConfig[:regex_filter_mute_words]
         if exclusive_words
-            exclusive_words = exclusive_words.split ","
-            msgs = msgs.delete_if do |m|
-                exclusive_words.any?{|w| m[:message].include? w if m[:message] }
+            begin
+                exclusive_words = exclusive_words.map{|w| /#{w}/}
+                msgs = msgs.delete_if do |m|
+                    exclusive_words.any? do |w|
+                        m[:message].to_s =~ w if m[:message]
+
+                    end
+                end
+            rescue RegexpError
             end
         end
         [service,msgs]
@@ -35,20 +46,25 @@ Plugin.create :filter do
 
     # ユーザフィルタ
     filter_update do |service,msgs|
-        exclusive_users = UserConfig[:filter_mute_users]
+        exclusive_users = UserConfig[:regex_filter_mute_users]
         if exclusive_users
-            exclusive_users = exclusive_users.split ","
+            begin
+            exclusive_users = exclusive_users.map{|u| /#{u}/}
             msgs = msgs.delete_if do |m|
-                exclusive_users.any?{|u| m[:user].to_s == u if m[:user]}
+                exclusive_users.any? do |u|
+                    m[:user].to_s =~ u if m[:user]
+                end
+            end
+            rescue RegexpError
             end
         end
         [service,msgs]
     end
 
-    settings "フィルタ" do
-        input "クライアント（半角カンマ区切り）", :filter_mute_kind_clients
-        input "単語（半角カンマ区切り）", :filter_mute_words
-        input "ユーザ（半角カンマ区切り）", :filter_mute_users
+    settings "正規表現フィルタ" do
+        multi "本文", :regex_filter_mute_words
+        multi "ユーザ名（@不要）", :regex_filter_mute_users
+        multi "クライアント", :regex_filter_mute_clients
     end
 
 end
