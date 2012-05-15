@@ -1,51 +1,54 @@
 #!/usr/bin/env ruby -Ku
 # -*- coding: utf-8 -*-
 
-Plugin.create(:filter) do
-    filter_show_filter do |msgs|
-        mute_words = UserConfig[:filter_mute_kind_client]
-        if mute_words
-            mute_words = mute_words.split(",")
-            msgs = msgs.select{ |m|
-                not mute_words.any?{ |word|
-                    word.to_s.include?(m[:source]) if m[:source] != nil
-                }
-            }
+Plugin.create :filter do
+
+    # ホームTLのみから削除
+    # 次のようにするとすべてのタブから除去
+    #
+    # filter_show_filter do |msgs|
+    # ...
+
+    # クライアントフィルタ
+    filter_update do |service,msgs|
+        exclusive_clients = UserConfig[:filter_mute_kind_clients]
+        if exclusive_clients
+            exclusive_clients = exclusive_clients.split ","
+            msgs = msgs.delete_if do |m|
+                exclusive_clients.any?{|c| m[:source].to_s.include? c if m[:source] }
+            end
         end
-        [msgs]
+        [service,msgs]
     end
 
-    filter_show_filter do |msgs|
-        mute_words = UserConfig[:filter_mute_word]
-        if mute_words
-            mute_words = mute_words.split(",")
-            msgs = msgs.select{ |m|
-                not mute_words.any?{ |word|
-                    m[:message].include?(word)
-                }
-            }
+    # 単語フィルタ
+    filter_update do |service,msgs|
+        exclusive_words = UserConfig[:filter_exclusive_words]
+        if exclusive_words
+            exclusive_words = exclusive_words.split ","
+            msgs = msgs.delete_if do |m|
+                exclusive_words.any?{|w| m[:message].include? w if m[:message] }
+            end
         end
-        [msgs]
+        [service,msgs]
     end
 
-    filter_show_filter do |msgs|
-        mute_words = UserConfig[:filter_mute_user]
-        if mute_words
-            mute_words = mute_words.split(",")
-            msgs = msgs.select{ |m|
-                not mute_words.any?{ |word|
-                    m[:user].to_s == word
-                }
-            }
+    # ユーザフィルタ
+    filter_update do |service,msgs|
+        exclusive_users = UserConfig[:filter_mute_users]
+        if exclusive_users
+            exclusive_users = exclusive_users.split ","
+            msgs = msgs.delete_if do |m|
+                exclusive_users.any?{|u| m[:user].to_s == u if m[:user]}
+            end
         end
-        [msgs]
+        [service,msgs]
     end
 
-    settings "ミュート" do
-        # self.methods.sort.each{|m| puts m }
-        input "クライアント", :filter_mute_kind_client
-        input "単語", :filter_mute_word
-        input "ユーザ", :filter_mute_user
+    settings "フィルタ" do
+        input "クライアント（半角カンマ区切り）", :filter_mute_kind_clients
+        input "単語（半角カンマ区切り）", :filter_mute_words
+        input "ユーザ（半角カンマ区切り）", :filter_mute_users
     end
 
 end
