@@ -16,9 +16,7 @@ Plugin.create :filter do
             begin
                 exclusive_clients = exclusive_clients.map{|c| /#{c}/}
                 msgs = msgs.delete_if do |m|
-                    exclusive_clients.any? do |c|
-                        m[:source].to_s =~ c if m[:source]
-                    end
+                    exclusive_clients.any?{|c| m[:source].to_s =~ c if m[:source] }
                 end
             rescue RegexpError
             end
@@ -33,10 +31,7 @@ Plugin.create :filter do
             begin
                 exclusive_words = exclusive_words.map{|w| /#{w}/}
                 msgs = msgs.delete_if do |m|
-                    exclusive_words.any? do |w|
-                        m[:message].to_s =~ w if m[:message]
-
-                    end
+                    exclusive_words.any?{|w| m[:message].to_s =~ w if m[:message] }
                 end
             rescue RegexpError
             end
@@ -51,9 +46,7 @@ Plugin.create :filter do
             begin
             exclusive_users = exclusive_users.map{|u| /#{u}/}
             msgs = msgs.delete_if do |m|
-                exclusive_users.any? do |u|
-                    m[:user].to_s =~ u if m[:user]
-                end
+                exclusive_users.any?{|u| m[:user].to_s =~ u if m[:user] }
             end
             rescue RegexpError
             end
