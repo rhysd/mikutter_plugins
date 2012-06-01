@@ -14,7 +14,7 @@ Plugin.create :filter do
         exclusive_clients = UserConfig[:regex_filter_mute_clients]
         if exclusive_clients
             begin
-                exclusive_clients = exclusive_clients.delete_if{|i| i.empty?}.map{|c| /#{c}/}
+                exclusive_clients = exclusive_clients.dup.delete_if{|i| i.empty?}.map{|c| /#{c}/}
                 msgs = msgs.delete_if do |m|
                     exclusive_clients.any?{|c| m[:source].to_s =~ c if m[:source] }
                 end
@@ -29,7 +29,7 @@ Plugin.create :filter do
         exclusive_words = UserConfig[:regex_filter_mute_words]
         if exclusive_words
             begin
-                exclusive_words = exclusive_words.delete_if{|i| i.empty?}.map{|w| /#{w}/}
+                exclusive_words = exclusive_words.dup.delete_if{|i| i.empty?}.map{|w| /#{w}/}
                 msgs = msgs.delete_if do |m|
                     exclusive_words.any?{|w| m[:message].to_s =~ w if m[:message] }
                 end
@@ -44,7 +44,7 @@ Plugin.create :filter do
         exclusive_users = UserConfig[:regex_filter_mute_users]
         if exclusive_users
             begin
-            exclusive_users = exclusive_users.delete_if{|i| i.empty?}.map{|u| /#{u}/}
+            exclusive_users = exclusive_users.dup.delete_if{|i| i.empty?}.map{|u| /#{u}/}
             msgs = msgs.delete_if do |m|
                 exclusive_users.any?{|u| m[:user].to_s =~ u if m[:user] }
             end
