@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# TODO: t.co を展開しないと使えない
 Plugin.create :filter do
 
     filter_show_filter do |msgs|
